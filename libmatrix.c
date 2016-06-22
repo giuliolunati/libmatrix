@@ -5,10 +5,25 @@
 #define uint unsigned int
 
 typedef struct {
-	uint width;
   uint height;
+	uint width;
   REAL *data;
 } matrix;
+
+void matrix_fprint(FILE *f, matrix *self) {
+  uint h = self->height, w = self->width;
+  uint x, y;
+  REAL *p = self->data;
+  fprintf(f, "matrix %d %d [\n", h, w);
+  for (y = 0; y < h; y ++) {
+    for (x = 0; x < w; x ++, p ++) fprintf(f, "  %lf", *p);
+    fprintf(f, "\n");
+  }
+  fprintf(f, "]\n");
+}
+void matrix_print(matrix *self) {
+  matrix_fprint(stdout, self);
+}
 
 REAL matrix_get(matrix *self, uint c, uint r) {
 	return self->data[c + r * self->width];
