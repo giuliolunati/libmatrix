@@ -2,14 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
-#define REAL float
-#define uint unsigned int
-
-typedef struct {
-	uint height;
-	uint width;
-	REAL *data;
-} matrix;
+#include "matrix.h"
 
 matrix *matrix_free(matrix *m) {
 	if (! m) return;
