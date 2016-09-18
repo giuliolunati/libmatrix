@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <assert.h>
 #include <math.h>
 #define REAL float
@@ -9,6 +10,44 @@ typedef struct {
 	uint width;
 	REAL *data;
 } matrix;
+
+matrix *matrix_free(matrix *m) {
+	if (! m) return;
+	if (m->data) free(m->data);
+	free(m);
+	return NULL;
+}
+
+matrix *matrix_init(uint height, uint width) {
+	matrix *m = malloc(sizeof(matrix));
+	if (!m) return NULL;
+	m->data = malloc(height * width * sizeof(REAL));
+	if (!m->data) return matrix_free(m);
+	m->height = height;
+	m->width = width;
+	return m;
+}
+
+matrix *matrix_fscanf(FILE *f) {
+	uint h, w, i;
+	double r;
+	char c;
+	matrix *m;
+	if (2 > fscanf(f, " matrix %d %d [", &h, &w)) return NULL;
+	m = matrix_init(h, w);
+	for (i = 0; i < h * w; i ++) {
+		if (1 > fscanf(f, "%lf", &r)) break;
+		m->data[i] = r;
+	}
+	if (i < h * w
+			|| 1 > fscanf(f, " %c", &c)
+			|| c != ']'
+	) {
+		matrix_free(m);
+		return NULL;
+	}
+	return m;
+}
 
 void matrix_fprintf(FILE *f, matrix *self) {
 	uint h = self->height, w = self->width;
