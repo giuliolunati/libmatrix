@@ -4,6 +4,24 @@
 #include <math.h>
 #include "matrix.h"
 
+void error(char *msg) {
+	fprintf(stderr, msg);
+	exit(1);
+}
+
+matrix *matrix_check(matrix *m) {
+	long int w = m->dx * (m->width - 1);
+	long int i = m->base;
+	if (i >= m->length) return NULL;
+	i += w;
+	if (i < 0 || i >= m->length) return NULL;
+	i += m->dy * (m->height - 1);
+	if (i < 0 || i >= m->length) return NULL;
+	i -= w;
+	if (i < 0 || i >= m->length) return NULL;
+	return m;
+}
+
 matrix *matrix_free(matrix *m) {
 	if (! m) return;
 	if (m->data) free(m->data);
@@ -57,6 +75,7 @@ matrix *matrix_fscanf(FILE *f) {
 }
 
 void matrix_fprintf(FILE *f, matrix *self) {
+	if (! matrix_check(self)) error("invalid geometry\n");
 	uint h = self->height, w = self->width;
 	uint x, y;
 	REAL *p = self->data + self->base;
