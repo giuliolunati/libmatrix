@@ -1,6 +1,10 @@
 //// GENERAL STUFF ////
 #define REAL float
 #define uint unsigned int
+
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 void error(char *msg);
 
 //// MATRIX ////
@@ -25,3 +29,7 @@ void matrix_set(matrix *self, uint c, uint r, REAL v);
 matrix *matrix_fscanf(FILE * f);
 void matrix_fprintf(FILE *f, matrix *self);
 void matrix_printf(matrix *self);
+// arithmetic //
+matrix *matrix_add_k(matrix *a, matrix *b, REAL k);
+matrix *matrix_add(matrix *a, matrix *b);
+matrix *matrix_sub(matrix *a, matrix *b);

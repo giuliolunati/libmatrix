@@ -10,6 +10,8 @@ void error(char *msg) {
 	exit(1);
 }
 
+char *wrong_dim = "Wrong dimension\n";
+
 matrix *matrix_check(matrix *m) {
 	long int w = m->dx * (m->width - 1);
 	long int i = m->base;
@@ -118,6 +120,38 @@ void matrix_set(matrix *self, uint col, uint row, REAL v) {
 	] = v;
 }
 
+matrix *matrix_add_k(matrix *a, matrix *b, REAL k) {
+	uint h, w, x, y;
+	matrix *m;
+	REAL *pm, *pa, *pb;
+	h = a->height; w = a->width;
+	if (h != b->height || w != b->width) error(wrong_dim);
+	m = matrix_init(h, w);
+	pm = m->data + m->base;
+	pa = a->data + a->base;
+	pb = b->data + b->base;
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			*pm = *pa + *pb * k;
+			pm += m->dx;
+			pa += a->dx;
+			pb += b->dx;
+		}
+		pm += m->dy - w * m->dx;
+		pa += a->dy - w * a->dx;
+		pb += b->dy - w * b->dx;
+	}
+	return m;
+}
+
+matrix *matrix_add(matrix *a, matrix *b) {
+	return matrix_add_k(a, b, 1);
+}
+	
+matrix *matrix_sub(matrix *a, matrix *b) {
+	return matrix_add_k(a, b, -1);
+}
+	
 #if 0
 matrix *matrix_mul(matrix *aa, matrix *bb, matrix *ab) {
 	uint c = bb->width;
