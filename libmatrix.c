@@ -21,7 +21,7 @@ void matrix_set(matrix *self, uint c, uint r, REAL v) {
 matrix *test(matrix *self) {
 	printf("cmatrix %dx%d %s\n", self->width, self->height, self->data);
 }
-
+#if 0
 matrix *matrix_mul(matrix *aa, matrix *bb, matrix *ab) {
 	uint c = bb->width;
 	if(c != ab->width) return NULL;
@@ -362,4 +362,5 @@ matrix *fastica(matrix *self, matrix *T, REAL blur, REAL eps) {
 	}
 	return self;
 }
+#endif
 // vim: set fdm=indent sw=2 ts=2 nocindent autoindent indk=:
