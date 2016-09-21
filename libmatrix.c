@@ -5,24 +5,25 @@
 #define uint unsigned int
 
 typedef struct {
-  uint height;
+	uint height;
 	uint width;
-  REAL *data;
+	REAL *data;
 } matrix;
 
-void matrix_fprint(FILE *f, matrix *self) {
-  uint h = self->height, w = self->width;
-  uint x, y;
-  REAL *p = self->data;
-  fprintf(f, "matrix %d %d [\n", h, w);
-  for (y = 0; y < h; y ++) {
-    for (x = 0; x < w; x ++, p ++) fprintf(f, "  %lf", *p);
-    fprintf(f, "\n");
-  }
-  fprintf(f, "]\n");
+void matrix_fprintf(FILE *f, matrix *self) {
+	uint h = self->height, w = self->width;
+	uint x, y;
+	REAL *p = self->data;
+	fprintf(f, "matrix %d %d [\n", h, w);
+	for (y = 0; y < h; y ++) {
+		for (x = 0; x < w; x ++, p ++) fprintf(f, "  %lf", *p);
+		fprintf(f, "\n");
+	}
+	fprintf(f, "]\n");
 }
-void matrix_print(matrix *self) {
-  matrix_fprint(stdout, self);
+
+void matrix_printf(matrix *self) {
+	matrix_fprintf(stdout, self);
 }
 
 REAL matrix_get(matrix *self, uint c, uint r) {
@@ -33,9 +34,6 @@ void matrix_set(matrix *self, uint c, uint r, REAL v) {
 	self->data[c + r * self->width] = v;
 }
 
-matrix *test(matrix *self) {
-	printf("cmatrix %dx%d %s\n", self->width, self->height, self->data);
-}
 #if 0
 matrix *matrix_mul(matrix *aa, matrix *bb, matrix *ab) {
 	uint c = bb->width;
@@ -126,42 +124,6 @@ matrix *diagJacobi(matrix *self, matrix *Q, REAL eps) {
 		}
 	}
 	return Q;
-}
-
-void addstat(matrix *data, REAL *s, REAL *p) {
-	// s[i] += sum_k(data[i, k])
-	// p[i, j] += sum_k(data[i, k] * data[j, k])
-	REAL *d = data->data;
-	uint j, k, kc, i, jc, c = data->width, r = data->height;
-	for(kc = 0; kc < r * c; kc += c) {
-		for(i = 0; i < c; i++) {
-			s[i] += d[i + kc];
-			for(j = jc = 0; j <= i; j++ , jc += c) {
-				p[i + jc] += d[i + kc] * d[j + kc];
-			}
-		}
-	}
-	for(j = 1, jc = c; j < c; j++ , jc += c) {
-		for(k = kc = 0; k < j; k++ , kc += c) {
-			p[k + jc] = p[j + kc];
-		}
-	}
-}
-
-void fixstat(REAL n, uint c, REAL *s, REAL *p) {
-	uint x, y, yc, xc;
-	for(x = 0; x < c; x++) s[x] /= n;
-	for(x = 0; x < c; x++) {
-		for(y = yc = 0; y <= x; y++ , yc++) {
-			p[x + yc] /= n;
-			p[x + yc] -= s[x] * s[y];
-		}
-	}
-	for(y = yc = 0; y < c; y++ , yc += c) {
-		for(x = xc = 0; x < y; x++ , x += c) {
-			p[x + yc] = p[y + xc];
-		}
-	}
 }
 
 REAL g(uint n, REAL x, REAL k, REAL blur) {
