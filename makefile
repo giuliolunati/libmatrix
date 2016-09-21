@@ -8,8 +8,12 @@ test.bin: test.c matrix.h libmatrix.so
 test: test.bin test.mat
 	./$< < test.mat
 
-.PHONY:clean
+.PHONY: clean
 clean:
 	rm -f *.o
 	rm -f *.so
 	rm -f test
+
+.PHONY: backup
+backup:
+	rsync ./ user@giuliolunati.no-ip.org:B/Prog/libmatrix -Favun
