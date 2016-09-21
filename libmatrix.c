@@ -17,8 +17,22 @@ matrix *matrix_init(uint height, uint width) {
 	m->data = malloc(height * width * sizeof(REAL));
 	if (!m->data) return matrix_free(m);
 	m->height = height;
-	m->width = width;
+	m->dy = m->width = width;
+	m->dx = 1;
+	m->base = 0;
+	m->length = height * width;
 	return m;
+}
+
+matrix *matrix_set_width(matrix *m, uint width) {
+	long int t;
+	// base + dx * (w - 1) < length
+	t = (m->length - m->base) / m->dx; // >= w
+	if (width > t) width = t;
+	m->width = width;
+	// base + dx * (w - 1) + dy * (h - 1) < length
+	t = (m->length - m->base - m->dx * (width - 1)) / m->dy; // >= h
+	if (m->height > t) m->height = t;
 }
 
 matrix *matrix_fscanf(FILE *f) {
@@ -45,10 +59,10 @@ matrix *matrix_fscanf(FILE *f) {
 void matrix_fprintf(FILE *f, matrix *self) {
 	uint h = self->height, w = self->width;
 	uint x, y;
-	REAL *p = self->data;
+	REAL *p = self->data + self->base;
 	fprintf(f, "matrix %d %d [\n", h, w);
-	for (y = 0; y < h; y ++) {
-		for (x = 0; x < w; x ++, p ++) fprintf(f, "  %lf", *p);
+	for (y = 0; y < h; y ++, p += self->dy - self->dx * w) {
+		for (x = 0; x < w; x ++, p += self->dx) fprintf(f, "  %lf", *p);
 		fprintf(f, "\n");
 	}
 	fprintf(f, "]\n");
@@ -58,12 +72,16 @@ void matrix_printf(matrix *self) {
 	matrix_fprintf(stdout, self);
 }
 
-REAL matrix_get(matrix *self, uint c, uint r) {
-	return self->data[c + r * self->width];
+REAL matrix_get(matrix *self, uint col, uint row) {
+	return self->data[
+		self->base + col * self->dy + row * self->dx
+	];
 }
 
-void matrix_set(matrix *self, uint c, uint r, REAL v) {
-	self->data[c + r * self->width] = v;
+void matrix_set(matrix *self, uint col, uint row, REAL v) {
+	self->data[
+		self->base + col * self->dy + row * self->dx
+	] = v;
 }
 
 #if 0
