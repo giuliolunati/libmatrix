@@ -6,7 +6,7 @@ test.bin: test.c matrix.h libmatrix.so
 
 .PHONY: test
 test: test.bin test.mat
-	./$< < test.mat
+	./$<
 
 .PHONY: clean
 clean:

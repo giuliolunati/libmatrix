@@ -2,9 +2,10 @@
 #include "matrix.h"
 
 int main() {
-  FILE *f = stdin;
-  matrix *m = matrix_fscanf(f);
-  matrix_set_width(m, 7);
+  matrix *m = matrix_make(2, 3,
+			1.0, 2.0, 0.0,
+			0.0, 1.0, 2.0
+	);
   if (m) matrix_printf(m);
   else {
 		printf("failed\n");

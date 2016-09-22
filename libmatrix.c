@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include <math.h>
+#include <stdarg.h>
 #include "matrix.h"
 
 void error(char *msg) {
@@ -39,6 +40,20 @@ matrix *matrix_init(uint height, uint width) {
 	m->dx = 1;
 	m->base = 0;
 	m->length = height * width;
+	return m;
+}
+
+matrix *matrix_make(uint height, uint width, ...) {
+	matrix *m = matrix_init(height, width);
+	if (!m) return NULL;
+	REAL *p;
+	REAL *end = m->data + height * width;
+	va_list ap;
+	va_start(ap, width);
+	for (p = m->data; p < end; p++) {
+		*p = va_arg(ap, double);
+	}
+	va_end(ap);
 	return m;
 }
 

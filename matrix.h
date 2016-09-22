@@ -15,6 +15,7 @@ typedef struct {
 } matrix;
 // basic //
 matrix *matrix_init(uint height, uint width);
+matrix *matrix_make(uint height, uint width, ...);
 matrix *matrix_free(matrix *m);
 matrix *matrix_check(matrix *m);
 matrix *matrix_set_width(matrix *m, uint width);
