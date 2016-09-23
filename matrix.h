@@ -33,3 +33,4 @@ void matrix_printf(matrix *self);
 matrix *matrix_add_k(matrix *a, matrix *b, REAL k);
 matrix *matrix_add(matrix *a, matrix *b);
 matrix *matrix_sub(matrix *a, matrix *b);
+matrix *matrix_mul(matrix *a, matrix *b);

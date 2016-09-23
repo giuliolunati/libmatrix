@@ -147,32 +147,43 @@ matrix *matrix_add_k(matrix *a, matrix *b, REAL k) {
 matrix *matrix_add(matrix *a, matrix *b) {
 	return matrix_add_k(a, b, 1);
 }
-	
+
 matrix *matrix_sub(matrix *a, matrix *b) {
 	return matrix_add_k(a, b, -1);
 }
-	
-#if 0
-matrix *matrix_mul(matrix *aa, matrix *bb, matrix *ab) {
-	uint c = bb->width;
-	if(c != ab->width) return NULL;
-	uint r = aa->height;
-	if(r != ab->height) return NULL;
-	uint cr = aa->width;
-	if(cr != bb->height) return NULL;
+
+matrix *matrix_mul(matrix *a, matrix *b) {
+	REAL t, *pa, *pb, *pm;
 	uint i, x, y;
-	REAL t, *a, *b;
-	for(y = 0; y < r; y++) {
-		for(x = 0; x < c; x++) {
-			for(i = 0, t = 0, a = aa->data + y * cr, b = bb->data + x;
-					i < cr;
-					i++ , a++ , b += c)
-				t += *a * *b;
-			ab->data[x + y * c] = t;
+	uint h = a->height;
+	uint w = b->width;
+	uint l = a->width;
+	matrix *m = matrix_init(h, w);
+	pa = a->data + a->base;
+	pb = b->data + b->base;
+	pm = m->data + m->base;
+	if (b->height != l) error(wrong_dim);
+	for (y = 0; y < h; y++) {
+		for (x = 0; x < w; x++) {
+			t = 0;
+			for (i = 0; i < l; i++) {
+				t += *pa * *pb;
+				pa += a->dx;
+				pb += b->dy;
+			}
+			*pm = t;
+			pm += m->dx;
+			pa -= l * a->dx;
+			pb += b->dx - l * b->dy;
 		}
+		pm += m->dy - w * m->dx;
+		pa += a->dy;
+		pb -= w * b->dx;
 	}
+	return m;
 }
 
+#if 0
 matrix *calc_givens(REAL a, REAL b, REAL c, REAL *C, REAL *S) {
 	/* Calcola i parametri della matrice di givens G = [(C, S), ( - S, C)]che diagonalizza A = [(a, b), (b, c)].\nRETURN:(c, s). */
 	REAL m, t;
