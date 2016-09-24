@@ -183,6 +183,25 @@ matrix *matrix_mul(matrix *a, matrix *b) {
 	return m;
 }
 
+matrix *matrix_sum_cols(matrix *m) {
+	uint h = m->height;
+	uint w = m->width;
+	matrix *s = matrix_init(1, w);
+	uint x, y;
+	REAL *pm = m->data + m->base;
+	REAL *ps;
+	for (y = 0; y < h; y++) {
+		ps = s->data + s->base;
+		for (x = 0; x < w; x++) {
+			*ps += *pm;
+			pm += m->dx;
+			ps += s->dx;
+		}
+		pm += m->dy - w * m->dx;
+	}
+	return s;
+}
+
 #if 0
 matrix *calc_givens(REAL a, REAL b, REAL c, REAL *C, REAL *S) {
 	/* Calcola i parametri della matrice di givens G = [(C, S), ( - S, C)]che diagonalizza A = [(a, b), (b, c)].\nRETURN:(c, s). */

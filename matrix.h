@@ -34,3 +34,5 @@ matrix *matrix_add_k(matrix *a, matrix *b, REAL k);
 matrix *matrix_add(matrix *a, matrix *b);
 matrix *matrix_sub(matrix *a, matrix *b);
 matrix *matrix_mul(matrix *a, matrix *b);
+// statistical //
+matrix *matrix_sum_cols(matrix *m);
