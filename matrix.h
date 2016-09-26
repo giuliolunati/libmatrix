@@ -9,9 +9,9 @@ void error(char *msg);
 
 //// MATRIX ////
 typedef struct {
+  REAL *data;
   uint height;
   uint width;
-  REAL *data;
   uint length;
   uint base;
   uint dx;
@@ -23,7 +23,7 @@ void matrix_init(matrix *out, uint height, uint width);
 void matrix_make(matrix *out, uint height, uint width, ...);
 void matrix_clean(matrix *m);
 void matrix_free(matrix *m);
-int matrix_check(matrix *m);
+void matrix_check(matrix *m);
 REAL matrix_get(matrix *m, uint c, uint r);
 void matrix_set(matrix *m, uint c, uint r, REAL v);
 // input/output //

@@ -14,6 +14,7 @@ char *wrong_dim = "Wrong dimension\n";
 char *not_null_pointer = "Output pointer not NULL\n";
 char *cant_alloc = "Cannot alloc memory\n";
 char *invalid_data = "Invalid data\n";
+char *few_data = "Too few data\n";
 
 matrix *matrix_new() {
 	matrix *m = calloc(1, sizeof(matrix));
@@ -54,17 +55,12 @@ void matrix_free(matrix *m) {
 	free(m);
 }
 
-int matrix_check(matrix *m) {
-	long int w = m->dx * (m->width - 1);
-	long int i = m->base;
-	if (i >= m->length) return 0;
-	i += w;
-	if (i < 0 || i >= m->length) return 0;
-	i += m->dy * (m->height - 1);
-	if (i < 0 || i >= m->length) return 0;
-	i -= w;
-	if (i < 0 || i >= m->length) return 0;
-	return 1;
+void matrix_check(matrix *m) {
+	if (
+		m->length <= m->base
+		+ m->dx * (m->width - 1)
+		+ m->dy * (m->height - 1)
+	) error(few_data);
 }
 
 REAL matrix_get(matrix *m, uint col, uint row) {
@@ -98,7 +94,7 @@ void matrix_fscanf(matrix *out, FILE *f) {
 }
 
 void matrix_fprintf(FILE *f, matrix *m) {
-	if (! matrix_check(m)) error("invalid geometry\n");
+	matrix_check(m);
 	uint h = m->height, w = m->width;
 	uint x, y;
 	REAL *p = m->data + m->base;
