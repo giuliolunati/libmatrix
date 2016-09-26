@@ -2,11 +2,6 @@
 #define REAL float
 #define uint unsigned int
 
-#define MAX(a, b) ((a) > (b) ? (a) : (b))
-#define MIN(a, b) ((a) < (b) ? (a) : (b))
-
-void error(char *msg);
-
 //// MATRIX ////
 typedef struct {
   REAL *data;

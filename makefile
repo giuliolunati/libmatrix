@@ -12,7 +12,7 @@ test: test.bin test.mat
 clean:
 	rm -f *.o
 	rm -f *.so
-	rm -f test
+	rm -f test.bin
 
 .PHONY: backup
 backup:

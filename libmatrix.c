@@ -5,6 +5,9 @@
 #include <stdarg.h>
 #include "matrix.h"
 
+#define MAX(a, b) ((a) > (b) ? (a) : (b))
+#define MIN(a, b) ((a) < (b) ? (a) : (b))
+
 void error(char *msg) {
 	fprintf(stderr, msg);
 	exit(1);
