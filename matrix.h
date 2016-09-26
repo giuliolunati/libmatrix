@@ -18,21 +18,23 @@ typedef struct {
   uint dy;
 } matrix;
 // basic //
-matrix *matrix_init(uint height, uint width);
-matrix *matrix_make(uint height, uint width, ...);
-matrix *matrix_free(matrix *m);
-matrix *matrix_check(matrix *m);
-matrix *matrix_set_width(matrix *m, uint width);
-REAL matrix_get(matrix *self, uint c, uint r);
-void matrix_set(matrix *self, uint c, uint r, REAL v);
+matrix *matrix_new();
+void matrix_init(matrix *out, uint height, uint width);
+void matrix_make(matrix *out, uint height, uint width, ...);
+void matrix_clean(matrix *m);
+void matrix_free(matrix *m);
+int matrix_check(matrix *m);
+REAL matrix_get(matrix *m, uint c, uint r);
+void matrix_set(matrix *m, uint c, uint r, REAL v);
 // input/output //
-matrix *matrix_fscanf(FILE * f);
-void matrix_fprintf(FILE *f, matrix *self);
-void matrix_printf(matrix *self);
+void matrix_fscanf(matrix *out, FILE *f);
+void matrix_fprintf(FILE *f, matrix *m);
+void matrix_printf(matrix *m);
 // arithmetic //
-matrix *matrix_add_k(matrix *a, matrix *b, REAL k);
-matrix *matrix_add(matrix *a, matrix *b);
-matrix *matrix_sub(matrix *a, matrix *b);
-matrix *matrix_mul(matrix *a, matrix *b);
+void matrix_add_k(matrix *out, matrix *a, matrix *b, REAL k);
+void matrix_add(matrix *out, matrix *a, matrix *b);
+void matrix_sub(matrix *out, matrix *a, matrix *b);
+void matrix_mul(matrix *out, matrix *a, matrix *b);
 // statistical //
-matrix *matrix_sum_cols(matrix *m);
+void matrix_sum_cols(matrix *out, matrix *m);
+void matrix_set_width(matrix *m, uint width);

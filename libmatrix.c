@@ -11,157 +11,149 @@ void error(char *msg) {
 }
 
 char *wrong_dim = "Wrong dimension\n";
+char *not_null_pointer = "Output pointer not NULL\n";
+char *cant_alloc = "Cannot alloc memory\n";
+char *invalid_data = "Invalid data\n";
 
-matrix *matrix_check(matrix *m) {
-	long int w = m->dx * (m->width - 1);
-	long int i = m->base;
-	if (i >= m->length) return NULL;
-	i += w;
-	if (i < 0 || i >= m->length) return NULL;
-	i += m->dy * (m->height - 1);
-	if (i < 0 || i >= m->length) return NULL;
-	i -= w;
-	if (i < 0 || i >= m->length) return NULL;
+matrix *matrix_new() {
+	matrix *m = calloc(1, sizeof(matrix));
+	if (! m) error(cant_alloc);
 	return m;
 }
 
-matrix *matrix_free(matrix *m) {
-	if (! m) return;
-	if (m->data) free(m->data);
-	free(m);
-	return NULL;
+void matrix_init(matrix *out, uint height, uint width) {
+	if (out->data) free(out->data);
+	out->data = malloc(height * width * sizeof(REAL));
+	if (!out->data) error(cant_alloc);
+	out->height = height;
+	out->dy = out->width = width;
+	out->dx = 1;
+	out->base = 0;
+	out->length = height * width;
 }
 
-matrix *matrix_init(uint height, uint width) {
-	matrix *m = malloc(sizeof(matrix));
-	if (!m) return NULL;
-	m->data = malloc(height * width * sizeof(REAL));
-	if (!m->data) return matrix_free(m);
-	m->height = height;
-	m->dy = m->width = width;
-	m->dx = 1;
-	m->base = 0;
-	m->length = height * width;
-	return m;
-}
-
-matrix *matrix_make(uint height, uint width, ...) {
-	matrix *m = matrix_init(height, width);
-	if (!m) return NULL;
+void matrix_make(matrix *out, uint height, uint width, ...) {
+	matrix_init(out, height, width);
 	REAL *p;
-	REAL *end = m->data + height * width;
+	REAL *end = out->data + height * width;
 	va_list ap;
 	va_start(ap, width);
-	for (p = m->data; p < end; p++) {
+	for (p = out->data; p < end; p++) {
 		*p = va_arg(ap, double);
 	}
 	va_end(ap);
-	return m;
 }
 
-matrix *matrix_set_width(matrix *m, uint width) {
-	long int t;
-	// base + dx * (w - 1) < length
-	t = (m->length - m->base) / m->dx; // >= w
-	if (width > t) width = t;
-	m->width = width;
-	// base + dx * (w - 1) + dy * (h - 1) < length
-	t = (m->length - m->base - m->dx * (width - 1)) / m->dy; // >= h
-	if (m->height > t) m->height = t;
+void matrix_clean(matrix *m) {
+	if (m->data) free(m->data);
+	memset(m, 0, sizeof(*m));
 }
 
-matrix *matrix_fscanf(FILE *f) {
+void matrix_free(matrix *m) {
+	if (m->data) free(m->data);
+	free(m);
+}
+
+int matrix_check(matrix *m) {
+	long int w = m->dx * (m->width - 1);
+	long int i = m->base;
+	if (i >= m->length) return 0;
+	i += w;
+	if (i < 0 || i >= m->length) return 0;
+	i += m->dy * (m->height - 1);
+	if (i < 0 || i >= m->length) return 0;
+	i -= w;
+	if (i < 0 || i >= m->length) return 0;
+	return 1;
+}
+
+REAL matrix_get(matrix *m, uint col, uint row) {
+	return m->data[
+		m->base + col * m->dy + row * m->dx
+	];
+}
+
+void matrix_set(matrix *m, uint col, uint row, REAL v) {
+	m->data[
+		m->base + col * m->dy + row * m->dx
+	] = v;
+}
+
+void matrix_fscanf(matrix *out, FILE *f) {
 	uint h, w, i;
 	double r;
 	char c;
-	matrix *m;
-	if (2 > fscanf(f, " matrix %d %d [", &h, &w)) return NULL;
-	m = matrix_init(h, w);
+	if (2 > fscanf(f, " matrix %d %d [", &h, &w)) error(invalid_data);
+	matrix_init(out, h, w);
 	for (i = 0; i < h * w; i ++) {
 		if (1 > fscanf(f, "%lf", &r)) break;
-		m->data[i] = r;
+		out->data[i] = r;
 	}
 	if (i < h * w
 			|| 1 > fscanf(f, " %c", &c)
 			|| c != ']'
 	) {
-		matrix_free(m);
-		return NULL;
+		error(invalid_data);
 	}
-	return m;
 }
 
-void matrix_fprintf(FILE *f, matrix *self) {
-	if (! matrix_check(self)) error("invalid geometry\n");
-	uint h = self->height, w = self->width;
+void matrix_fprintf(FILE *f, matrix *m) {
+	if (! matrix_check(m)) error("invalid geometry\n");
+	uint h = m->height, w = m->width;
 	uint x, y;
-	REAL *p = self->data + self->base;
+	REAL *p = m->data + m->base;
 	fprintf(f, "matrix %d %d [\n", h, w);
-	for (y = 0; y < h; y ++, p += self->dy - self->dx * w) {
-		for (x = 0; x < w; x ++, p += self->dx) fprintf(f, "  %lf", *p);
+	for (y = 0; y < h; y ++, p += m->dy - m->dx * w) {
+		for (x = 0; x < w; x ++, p += m->dx) fprintf(f, "  %lf", *p);
 		fprintf(f, "\n");
 	}
 	fprintf(f, "]\n");
 }
 
-void matrix_printf(matrix *self) {
-	matrix_fprintf(stdout, self);
+void matrix_printf(matrix *m) {
+	matrix_fprintf(stdout, m);
 }
 
-REAL matrix_get(matrix *self, uint col, uint row) {
-	return self->data[
-		self->base + col * self->dy + row * self->dx
-	];
-}
-
-void matrix_set(matrix *self, uint col, uint row, REAL v) {
-	self->data[
-		self->base + col * self->dy + row * self->dx
-	] = v;
-}
-
-matrix *matrix_add_k(matrix *a, matrix *b, REAL k) {
+void matrix_add_k(matrix *out, matrix *a, matrix *b, REAL k) {
 	uint h, w, x, y;
-	matrix *m;
 	REAL *pm, *pa, *pb;
 	h = a->height; w = a->width;
 	if (h != b->height || w != b->width) error(wrong_dim);
-	m = matrix_init(h, w);
-	pm = m->data + m->base;
+	matrix_init(out, h, w);
+	pm = out->data + out->base;
 	pa = a->data + a->base;
 	pb = b->data + b->base;
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
 			*pm = *pa + *pb * k;
-			pm += m->dx;
+			pm += out->dx;
 			pa += a->dx;
 			pb += b->dx;
 		}
-		pm += m->dy - w * m->dx;
+		pm += out->dy - w * out->dx;
 		pa += a->dy - w * a->dx;
 		pb += b->dy - w * b->dx;
 	}
-	return m;
 }
 
-matrix *matrix_add(matrix *a, matrix *b) {
-	return matrix_add_k(a, b, 1);
+void matrix_add(matrix *out, matrix *a, matrix *b) {
+	matrix_add_k(out, a, b, 1);
 }
 
-matrix *matrix_sub(matrix *a, matrix *b) {
-	return matrix_add_k(a, b, -1);
+void matrix_sub(matrix *out, matrix *a, matrix *b) {
+	matrix_add_k(out, a, b, -1);
 }
 
-matrix *matrix_mul(matrix *a, matrix *b) {
+void matrix_mul(matrix *out, matrix *a, matrix *b) {
 	REAL t, *pa, *pb, *pm;
 	uint i, x, y;
 	uint h = a->height;
 	uint w = b->width;
 	uint l = a->width;
-	matrix *m = matrix_init(h, w);
+	matrix_init(out, h, w);
 	pa = a->data + a->base;
 	pb = b->data + b->base;
-	pm = m->data + m->base;
+	pm = out->data + out->base;
 	if (b->height != l) error(wrong_dim);
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
@@ -172,34 +164,43 @@ matrix *matrix_mul(matrix *a, matrix *b) {
 				pb += b->dy;
 			}
 			*pm = t;
-			pm += m->dx;
+			pm += out->dx;
 			pa -= l * a->dx;
 			pb += b->dx - l * b->dy;
 		}
-		pm += m->dy - w * m->dx;
+		pm += out->dy - w * out->dx;
 		pa += a->dy;
 		pb -= w * b->dx;
 	}
-	return m;
 }
 
-matrix *matrix_sum_cols(matrix *m) {
+void matrix_sum_cols(matrix *out, matrix *m) {
 	uint h = m->height;
 	uint w = m->width;
-	matrix *s = matrix_init(1, w);
+	matrix_init(out, 1, w);
 	uint x, y;
 	REAL *pm = m->data + m->base;
 	REAL *ps;
 	for (y = 0; y < h; y++) {
-		ps = s->data + s->base;
+		ps = out->data + out->base;
 		for (x = 0; x < w; x++) {
 			*ps += *pm;
 			pm += m->dx;
-			ps += s->dx;
+			ps += out->dx;
 		}
 		pm += m->dy - w * m->dx;
 	}
-	return s;
+}
+
+void matrix_set_width(matrix *m, uint width) {
+	long int t;
+	// base + dx * (w - 1) < length
+	t = (m->length - m->base) / m->dx; // >= w
+	if (width > t) width = t;
+	m->width = width;
+	// base + dx * (w - 1) + dy * (h - 1) < length
+	t = (m->length - m->base - m->dx * (width - 1)) / m->dy; // >= h
+	if (m->height > t) m->height = t;
 }
 
 #if 0
@@ -245,13 +246,13 @@ matrix *givens(matrix *mat, REAL c, REAL s, uint j, uint k, uint side) {
 	return mat;
 }
 
-matrix *diagJacobi(matrix *self, matrix *Q, REAL eps) {
+matrix *diagJacobi(matrix *m, matrix *Q, REAL eps) {
 	eps *= eps;
-	uint height = self->height;
-	uint width = self->width;
+	uint height = m->height;
+	uint width = m->width;
 	REAL r = 1;
 	REAL v;
-	REAL *data = self->data;
+	REAL *data = m->data;
 	REAL m, M;
 	uint x, y;
 	REAL c, s;
@@ -265,7 +266,7 @@ matrix *diagJacobi(matrix *self, matrix *Q, REAL eps) {
 				if(v * v > M * r) {
 					r = v * v/M;
 					calc_givens(data[y + width * y], data[x + width * y], data[x + width * x], &c, &s);
-					givens(self, c, s, y, x, 3);
+					givens(m, c, s, y, x, 3);
 					givens(Q, c, s, y, x, 1);
 				}
 			}
@@ -319,13 +320,13 @@ void fastica_step(matrix *D, REAL *w, uint n, REAL blur, REAL *V) {
 	}
 }
 
-void householder(matrix *self, REAL *u, uint side, uint skip) {
-	// Moltiplica self per la matrice di Householder di vettore unitario u.
+void householder(matrix *m, REAL *u, uint side, uint skip) {
+	// Moltiplica m per la matrice di Householder di vettore unitario u.
 	// side = 1: moltiplica a dex; side = 2: a sin; side = 3: entrambi
 	// u viene normalizzato.
 	// ignora le prime skip colonne/righe
-	uint r = self->height;
-	uint c = self->width;
+	uint r = m->height;
+	uint c = m->width;
 	uint i, n, x, y;
 	REAL v = 0;
 	if(side == 1) n = c;
@@ -340,12 +341,12 @@ void householder(matrix *self, REAL *u, uint side, uint skip) {
 	if(side == 2 || side == 3) {
 		for(x = 0; x < c; x++) {
 			for(v = 0, i = x + skip * r, y = skip; y < n; y++) {
-				v += self->data[i] * u[y];
+				v += m->data[i] * u[y];
 				i += r;
 			}
 			v *= 2;
 			for(i = x + skip * r, y = skip; y < n; y++) {
-				self->data[i] -= v * u[y];
+				m->data[i] -= v * u[y];
 				i += r;
 			}
 		}
@@ -353,22 +354,22 @@ void householder(matrix *self, REAL *u, uint side, uint skip) {
 	if(side == 1 || side == 3) {
 		for(y = 0; y < r; y++) {
 			for(v = 0, i = y * c + skip, x = skip; x < n; x++) {
-				v += self->data[i] * u[x];
+				v += m->data[i] * u[x];
 				i++ ;
 			}
 			v *= 2;
 			for(i = y * c + skip, x = skip; x < n; x++) {
-				self->data[i] -= v * u[x];
+				m->data[i] -= v * u[x];
 				i++ ;
 			}
 		}
 	}
 }
 
-matrix *diagonalize(matrix *self, matrix *Q, REAL eps) {
+matrix *diagonalize(matrix *m, matrix *Q, REAL eps) {
 	eps *= eps;
-	REAL *d = self->data;
-	uint n = self->width;
+	REAL *d = m->data;
+	uint n = m->width;
 	uint i, j;
 	REAL H[n];
 	double v;
@@ -377,7 +378,7 @@ matrix *diagonalize(matrix *self, matrix *Q, REAL eps) {
 		for(j = i + 1; j < n; j += 1) H[j] = d[i + j * n];
 		for(v = 0, j = i + 1; j < n; j++) v += H[j] * H[j];
 		H[i + 1] -= sqrt(v);
-		householder(self, H, 3, i + 1);
+		householder(m, H, 3, i + 1);
 		householder(Q, H, 1, i + 1);
 	}
 	REAL t;
@@ -440,10 +441,10 @@ matrix *diagonalize(matrix *self, matrix *Q, REAL eps) {
 	return Q;
 }
 
-matrix *fastica(matrix *self, matrix *T, REAL blur, REAL eps) {
-	uint c = self->width;
-	uint r = self->height;
-	REAL *x = self->data;
+matrix *fastica(matrix *m, matrix *T, REAL blur, REAL eps) {
+	uint c = m->width;
+	uint r = m->height;
+	REAL *x = m->data;
 	REAL W[c], W1[c];
 	uint i, j, n;
 	REAL d, d0, e, s, t, v;
@@ -463,7 +464,7 @@ matrix *fastica(matrix *self, matrix *T, REAL blur, REAL eps) {
 			}
 			v = sqrt(v);
 			e *= 1.02;
-			fastica_step(self, W, n, blur * v, W1);
+			fastica_step(m, W, n, blur * v, W1);
 			d = 0.0;
 			for(j = 0; j < c; j++) {
 				d += fabs(W[j] - W1[j]);
@@ -483,9 +484,9 @@ matrix *fastica(matrix *self, matrix *T, REAL blur, REAL eps) {
 		}
 		W[n] -= 1;
 		householder(T, W, 1, n);
-		householder(self, W, 1, n);
+		householder(m, W, 1, n);
 	}
-	return self;
+	return m;
 }
 #endif
 // vim: set fdm=indent sw=2 ts=2 nocindent autoindent indk=:
