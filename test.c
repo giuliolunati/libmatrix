@@ -11,8 +11,10 @@ int main() {
 			1.0, 2.0,
 			0.0, 4.0
 	);
-	matrix_scale(a, 2);
   matrix_printf(a);
+	matrix_covar_cols(c, b, a);
+  matrix_printf(b);
+  matrix_printf(c);
   return 0;
 }
 // vim: set fdm=indent sw=2 ts=2 nocindent autoindent indk=:

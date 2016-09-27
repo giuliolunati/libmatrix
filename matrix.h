@@ -37,4 +37,5 @@ void matrix_scale(matrix *m, REAL k);
 void matrix_transpose(matrix *m);
 // statistical //
 void matrix_sum_cols(matrix *out, matrix *m);
+void matrix_mean_cols(matrix *out, matrix *m);
 void matrix_set_width(matrix *m, uint width);

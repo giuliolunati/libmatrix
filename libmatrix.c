@@ -221,6 +221,28 @@ void matrix_sum_cols(matrix *out, matrix *m) {
 	}
 }
 
+void matrix_mean_cols(matrix *out, matrix *m) {
+	REAL k = 1.0 / m->height;
+	matrix_sum_cols(out, m);
+	matrix_scale(out, k);
+}
+
+void matrix_covar_cols(matrix *cov, matrix *mean, matrix *m) {
+  matrix t, u;
+	t.data = u.data = NULL;
+	matrix_copy_shallow(&t, m);
+	matrix_transpose(&t);
+	matrix_mul(cov, &t, m);
+	matrix_scale(cov, 1.0/m->height);
+	matrix_mean_cols(mean, m);
+	matrix_copy_shallow(&t, mean);
+	matrix_transpose(&t);
+	matrix_mul(&u, &t, mean);
+	matrix_sub_from(cov, &u);
+	matrix_clean(&t);
+	matrix_clean(&u);
+}
+
 void matrix_set_width(matrix *m, uint width) {
 	long int t;
 	// base + dx * (w - 1) < length
