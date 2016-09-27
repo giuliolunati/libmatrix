@@ -128,34 +128,30 @@ void matrix_printf(matrix *m) {
 	matrix_fprintf(stdout, m);
 }
 
-void matrix_add_k(matrix *out, matrix *a, matrix *b, REAL k) {
+void matrix_add_k_to(matrix *a, matrix *b, REAL k) {
 	uint h, w, x, y;
-	REAL *pm, *pa, *pb;
+	REAL *pa, *pb;
 	h = a->height; w = a->width;
 	if (h != b->height || w != b->width) error(wrong_dim);
-	matrix_init(out, h, w);
-	pm = out->data + out->base;
 	pa = a->data + a->base;
 	pb = b->data + b->base;
 	for (y = 0; y < h; y++) {
 		for (x = 0; x < w; x++) {
-			*pm = *pa + *pb * k;
-			pm += out->dx;
+			*pa += *pb * k;
 			pa += a->dx;
 			pb += b->dx;
 		}
-		pm += out->dy - w * out->dx;
 		pa += a->dy - w * a->dx;
 		pb += b->dy - w * b->dx;
 	}
 }
 
-void matrix_add(matrix *out, matrix *a, matrix *b) {
-	matrix_add_k(out, a, b, 1);
+void matrix_add_to(matrix *a, matrix *b) {
+	matrix_add_k_to(a, b, 1);
 }
 
-void matrix_sub(matrix *out, matrix *a, matrix *b) {
-	matrix_add_k(out, a, b, -1);
+void matrix_sub_from(matrix *a, matrix *b) {
+	matrix_add_k_to(a, b, -1);
 }
 
 void matrix_mul(matrix *out, matrix *a, matrix *b) {

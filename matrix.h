@@ -29,9 +29,9 @@ void matrix_fscanf(matrix *out, FILE *f);
 void matrix_fprintf(FILE *f, matrix *m);
 void matrix_printf(matrix *m);
 // ops //
-void matrix_add_k(matrix *out, matrix *a, matrix *b, REAL k);
-void matrix_add(matrix *out, matrix *a, matrix *b);
-void matrix_sub(matrix *out, matrix *a, matrix *b);
+void matrix_add_k_to(matrix *a, matrix *b, REAL k);
+void matrix_add_to(matrix *a, matrix *b);
+void matrix_sub_from(matrix *a, matrix *b);
 void matrix_mul(matrix *out, matrix *a, matrix *b);
 void matrix_transpose(matrix *m);
 // statistical //
