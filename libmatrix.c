@@ -14,7 +14,7 @@ void error(char *msg) {
 }
 
 char *wrong_dim = "Wrong dimension\n";
-char *not_null_pointer = "Output pointer not NULL\n";
+char *null_pointer = "NULL pointer\n";
 char *cant_alloc = "Cannot alloc memory\n";
 char *invalid_data = "Invalid data\n";
 char *few_data = "Too few data\n";
@@ -29,6 +29,7 @@ void matrix_init(matrix *out, uint height, uint width) {
 	if (out->data) free(out->data);
 	out->data = malloc(height * width * sizeof(REAL));
 	if (!out->data) error(cant_alloc);
+	out->shared = 0;
 	out->height = height;
 	out->dy = out->width = width;
 	out->dx = 1;
@@ -48,13 +49,27 @@ void matrix_make(matrix *out, uint height, uint width, ...) {
 	va_end(ap);
 }
 
+void matrix_copy_shallow(matrix *out, matrix *m) {
+	if (! out || ! m) error(null_pointer); 
+	memcpy(out, m, sizeof(*out));
+	out->shared = 1;
+}
+
+void matrix_copy_deep(matrix *out, matrix *m) {
+	uint l;
+	matrix_copy_shallow(out, m);
+	l = out->length * sizeof(REAL);
+	out->data = malloc(l);
+	assert(out->data);
+	memcpy(out->data, m->data, l);
+}
+
 void matrix_clean(matrix *m) {
-	if (m->data) free(m->data);
-	memset(m, 0, sizeof(*m));
+	memset(m, 1, sizeof(*m));
 }
 
 void matrix_free(matrix *m) {
-	if (m->data) free(m->data);
+	if (m->data && ! m->shared) free(m->data);
 	free(m);
 }
 

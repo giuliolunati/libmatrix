@@ -5,6 +5,7 @@
 //// MATRIX ////
 typedef struct {
   REAL *data;
+  uint shared; // if 1 data is shared, don't free it!
   uint height;
   uint width;
   uint length;
@@ -16,6 +17,8 @@ typedef struct {
 matrix *matrix_new();
 void matrix_init(matrix *out, uint height, uint width);
 void matrix_make(matrix *out, uint height, uint width, ...);
+void matrix_copy_shallow(matrix *out, matrix *m);
+void matrix_copy_deep(matrix *out, matrix *m);
 void matrix_clean(matrix *m);
 void matrix_free(matrix *m);
 void matrix_check(matrix *m);

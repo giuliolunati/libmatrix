@@ -12,13 +12,16 @@ int main() {
 			0.0, 4.0
 	);
   matrix_printf(a);
-	matrix_sum_cols(b, a);
+	matrix_copy_shallow(b, a);
   matrix_printf(b);
+	matrix_copy_deep(c, a);
+	matrix_set(b, 0, 0, 88 );
+	matrix_set(c, 0, 0, 99);
+  matrix_printf(c);
+	matrix_clean(c);
+  matrix_printf(a);
 	matrix_clean(b);
-	matrix_make(b, 2, 1, -1, 1);
-	matrix_printf(b);
-	matrix_mul(c, a , b);
-	matrix_printf(c);
+  matrix_printf(a);
   return 0;
 }
 // vim: set fdm=indent sw=2 ts=2 nocindent autoindent indk=:
