@@ -13,14 +13,9 @@ int main() {
 	);
   matrix_printf(a);
 	matrix_copy_shallow(b, a);
+  matrix_transpose(b);
   matrix_printf(b);
-	matrix_copy_deep(c, a);
-	matrix_set(b, 0, 0, 88 );
-	matrix_set(c, 0, 0, 99);
-  matrix_printf(c);
-	matrix_clean(c);
-  matrix_printf(a);
-	matrix_clean(b);
+	matrix_set(b, 0, 1, 88);
   matrix_printf(a);
   return 0;
 }

@@ -188,6 +188,12 @@ void matrix_mul(matrix *out, matrix *a, matrix *b) {
 	}
 }
 
+void matrix_transpose(matrix *m) {
+	uint t;
+	t = m->dx; m->dx = m->dy; m->dy = t;
+	t = m->height; m->height = m->width; m->width = t;
+}
+
 void matrix_sum_cols(matrix *out, matrix *m) {
 	uint h = m->height;
 	uint w = m->width;

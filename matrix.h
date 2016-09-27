@@ -28,11 +28,12 @@ void matrix_set(matrix *m, uint c, uint r, REAL v);
 void matrix_fscanf(matrix *out, FILE *f);
 void matrix_fprintf(FILE *f, matrix *m);
 void matrix_printf(matrix *m);
-// arithmetic //
+// ops //
 void matrix_add_k(matrix *out, matrix *a, matrix *b, REAL k);
 void matrix_add(matrix *out, matrix *a, matrix *b);
 void matrix_sub(matrix *out, matrix *a, matrix *b);
 void matrix_mul(matrix *out, matrix *a, matrix *b);
+void matrix_transpose(matrix *m);
 // statistical //
 void matrix_sum_cols(matrix *out, matrix *m);
 void matrix_set_width(matrix *m, uint width);
