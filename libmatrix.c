@@ -184,6 +184,19 @@ void matrix_mul(matrix *out, matrix *a, matrix *b) {
 	}
 }
 
+void matrix_scale(matrix *m, REAL k) {
+	uint x, y;
+	REAL *pa;
+	pa = m->data + m->base;
+	for (y = 0; y < m->height; y++) {
+		for (x = 0; x < m->width; x++) {
+			*pa *= k;
+			pa += m->dx;
+		}
+		pa += m->dy - m->width * m->dx;
+	}
+}
+
 void matrix_transpose(matrix *m) {
 	uint t;
 	t = m->dx; m->dx = m->dy; m->dy = t;

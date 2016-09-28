@@ -33,6 +33,7 @@ void matrix_add_k_to(matrix *a, matrix *b, REAL k);
 void matrix_add_to(matrix *a, matrix *b);
 void matrix_sub_from(matrix *a, matrix *b);
 void matrix_mul(matrix *out, matrix *a, matrix *b);
+void matrix_scale(matrix *m, REAL k);
 void matrix_transpose(matrix *m);
 // statistical //
 void matrix_sum_cols(matrix *out, matrix *m);
