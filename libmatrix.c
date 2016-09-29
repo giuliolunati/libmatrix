@@ -25,9 +25,10 @@ matrix *matrix_new() {
 	return m;
 }
 
-void matrix_init(matrix *out, uint height, uint width) {
+void matrix_init(matrix *out, uint height, uint width, REAL val) {
+	REAL *p, *end;
 	if (out->data) free(out->data);
-	out->data = malloc(height * width * sizeof(REAL));
+	out->data = calloc(height * width, sizeof(REAL));
 	if (!out->data) error(cant_alloc);
 	out->shared = 0;
 	out->height = height;
@@ -35,10 +36,14 @@ void matrix_init(matrix *out, uint height, uint width) {
 	out->dx = 1;
 	out->base = 0;
 	out->length = height * width;
+	if (val == 0) return;
+	p = out->data;
+	if (height > width) height = width;
+	for (end = out->data + height * (1 + width); p < end; p += 1 + width) *p = val;
 }
 
 void matrix_make(matrix *out, uint height, uint width, ...) {
-	matrix_init(out, height, width);
+	matrix_init(out, height, width, 0);
 	REAL *p;
 	REAL *end = out->data + height * width;
 	va_list ap;
@@ -98,7 +103,7 @@ void matrix_fscanf(matrix *out, FILE *f) {
 	double r;
 	char c;
 	if (2 > fscanf(f, " matrix %d %d [", &h, &w)) error(invalid_data);
-	matrix_init(out, h, w);
+	matrix_init(out, h, w, 0);
 	for (i = 0; i < h * w; i ++) {
 		if (1 > fscanf(f, "%lf", &r)) break;
 		out->data[i] = r;
@@ -160,7 +165,7 @@ void matrix_mul(matrix *out, matrix *a, matrix *b) {
 	uint h = a->height;
 	uint w = b->width;
 	uint l = a->width;
-	matrix_init(out, h, w);
+	matrix_init(out, h, w, 0);
 	pa = a->data + a->base;
 	pb = b->data + b->base;
 	pm = out->data + out->base;
@@ -206,7 +211,7 @@ void matrix_transpose(matrix *m) {
 void matrix_sum_cols(matrix *out, matrix *m) {
 	uint h = m->height;
 	uint w = m->width;
-	matrix_init(out, 1, w);
+	matrix_init(out, 1, w, 0);
 	uint x, y;
 	REAL *pm = m->data + m->base;
 	REAL *ps;

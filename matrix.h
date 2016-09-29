@@ -15,7 +15,7 @@ typedef struct {
 } matrix;
 // basic //
 matrix *matrix_new();
-void matrix_init(matrix *out, uint height, uint width);
+void matrix_init(matrix *out, uint height, uint width, REAL val);
 void matrix_make(matrix *out, uint height, uint width, ...);
 void matrix_copy_shallow(matrix *out, matrix *m);
 void matrix_copy_deep(matrix *out, matrix *m);
