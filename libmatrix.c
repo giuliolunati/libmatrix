@@ -259,6 +259,109 @@ void matrix_set_width(matrix *m, uint width) {
 	if (m->height > t) m->height = t;
 }
 
+void matrix_householder(matrix *m, REAL *u, uint side, uint skip) {
+	// Moltiplica m per la matrice di Householder di vettore unitario u.
+	// side = 0 or 1: moltiplica a dex
+	// side = 2: a sin
+	// side = 3: entrambi
+	// u viene normalizzato.
+	// ignora le prime skip colonne/righe
+	uint h = m->height;
+	uint w = m->width;
+	uint n, x, y;
+	REAL v = 0, *p;
+	if (side == 0) side = 1;
+	if (side == 1) n = w;
+	else if (side == 2) n = h;
+	else if (side == 3) n = (h < w ? h : w);
+	for (v = 0, x = skip; x < n; x++) v += u[x] * u[x];
+	assert(v > 0);
+	if (v != 1) {
+		v = sqrt(v);
+		for (x = skip; x < n; x++) u[x] /= v;
+	}
+	if (side != 1) {
+		p = m->data + m->base + skip * m->dy;
+		for (x = 0; x < w; x++) {
+			v = 0;
+			for (y = skip; y < n; y++) {
+				v += *p * u[y];
+				p += m->dy;
+			}
+			v *= 2;
+			p -= (n - skip) * m->dy;
+			for (y = skip; y < n; y++) {
+				*p -= v * u[y];
+				p += m->dy;
+			}
+			p += m->dx - (n - skip) * m->dy;
+		}
+	}
+	if (side != 2) {
+		p = m->data + m->base + skip * m->dx;
+		for (y = 0; y < h; y++) {
+			v = 0;
+			for (x = skip; x < n; x++) {
+				v += *p * u[x];
+				p += m->dx;
+			}
+			v *= 2;
+			p -= (n - skip) * m->dx;
+			for (x = skip; x < n; x++) {
+				*p -= v * u[x];
+				p += m->dx;
+			}
+			p += m->dy - (n - skip) * m->dx;
+		}
+	}
+}
+
+void matrix_transform(matrix *a, matrix *b, uint side) {
+	// a -> a'
+	// b -> b'
+	// q is orthonormal, q^ = transpose(q)
+	// side = 1: a' = a * q is lower triangular 
+	//      and: b' = b * q
+	// side = 2: a' = q * a is upper triangular
+	//      and: b' = q * b
+	// side = 3: a' = q^*a*q is upper hessenberg 
+	//      and: b' = b * q
+	// most of times, you want init b = identity
+	uint n = a->width;
+	uint i, j, k, dx, dy;
+	REAL H[n], *p;
+	double v;
+	if (side == 3 && a->height != a->width) error(wrong_dim); 
+	k = (side == 3 ? 1 : 0);
+	if (side == 1) {dx = a->dy; dy = a->dx;}
+	else {dx = a->dx; dy = a->dy;}
+	for(i = 0; i < n - 1 - k; i ++) {
+		for(j = 0; j < i + k; j ++) H[j] = 0;
+		p = a->data + a->base
+			+ i * dx + (i + k) * dy;
+		for(j = i + k; j < n; j ++) {
+			H[j] = *p;
+			p += dy;
+		}
+		for(v = 0, j = i + k; j < n; j ++) v += H[j] * H[j];
+		H[i + k] -= sqrt(v);
+		matrix_householder(a, H, side, i + k);
+		if (b) matrix_householder(b, H, side % 3, i + k);
+	}
+}
+
+void matrix_tri_lower(matrix *a, matrix *b) {
+	matrix_transform(a, b, 1);
+}
+
+void matrix_tri_upper(matrix *a, matrix *b) {
+	matrix_transform(a, b, 2);
+}
+
+void matrix_hessemberg(matrix *a, matrix *b) {
+	matrix_transform(a, b, 3);
+}
+
 #if 0
 matrix *calc_givens(REAL a, REAL b, REAL c, REAL *C, REAL *S) {
 	/* Calcola i parametri della matrice di givens G = [(C, S), ( - S, C)]che diagonalizza A = [(a, b), (b, c)].\nRETURN:(c, s). */
@@ -373,52 +476,6 @@ void fastica_step(matrix *D, REAL *w, uint n, REAL blur, REAL *V) {
 	if(v != 1) {
 		v = sqrt(v);
 		for(i = 0; i < c; i++) V[i] /= v;
-	}
-}
-
-void householder(matrix *m, REAL *u, uint side, uint skip) {
-	// Moltiplica m per la matrice di Householder di vettore unitario u.
-	// side = 1: moltiplica a dex; side = 2: a sin; side = 3: entrambi
-	// u viene normalizzato.
-	// ignora le prime skip colonne/righe
-	uint r = m->height;
-	uint c = m->width;
-	uint i, n, x, y;
-	REAL v = 0;
-	if(side == 1) n = c;
-	else if(side == 2) n = r;
-	else if(side == 3) n = (r < c?r:c);
-	for(v = 0, i = skip; i < n; i++) v += u[i] * u[i];
-	if(v == 0) return;
-	if(v != 1) {
-		v = sqrt(v);
-		for(i = skip; i < n; i++) u[i] /= v;
-	}
-	if(side == 2 || side == 3) {
-		for(x = 0; x < c; x++) {
-			for(v = 0, i = x + skip * r, y = skip; y < n; y++) {
-				v += m->data[i] * u[y];
-				i += r;
-			}
-			v *= 2;
-			for(i = x + skip * r, y = skip; y < n; y++) {
-				m->data[i] -= v * u[y];
-				i += r;
-			}
-		}
-	}
-	if(side == 1 || side == 3) {
-		for(y = 0; y < r; y++) {
-			for(v = 0, i = y * c + skip, x = skip; x < n; x++) {
-				v += m->data[i] * u[x];
-				i++ ;
-			}
-			v *= 2;
-			for(i = y * c + skip, x = skip; x < n; x++) {
-				m->data[i] -= v * u[x];
-				i++ ;
-			}
-		}
 	}
 }
 

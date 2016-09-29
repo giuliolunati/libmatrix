@@ -1,5 +1,5 @@
 //// GENERAL STUFF ////
-#define REAL float
+#define REAL double
 #define uint unsigned int
 
 //// MATRIX ////
@@ -39,3 +39,9 @@ void matrix_transpose(matrix *m);
 void matrix_sum_cols(matrix *out, matrix *m);
 void matrix_mean_cols(matrix *out, matrix *m);
 void matrix_set_width(matrix *m, uint width);
+// diagonalize //
+void matrix_householder(matrix *m, REAL *u, uint side, uint skip);
+void matrix_hessemberg(matrix *a, matrix *b);
+#define matrix_tri_diag matrix_hessemberg
+void matrix_tri_upper(matrix *a, matrix *b);
+void matrix_tri_lower(matrix *a, matrix *b);
